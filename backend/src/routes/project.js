@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Project = require('../models/Project');
 const { callPreferred } = require('../llm/adapters');
 const zipProjectFiles = require('../utils/zipProject');
+require('dotenv').config();
 
 router.get('/health', (req, res) => res.json({ ok: true }));
 
