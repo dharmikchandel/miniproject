@@ -41,7 +41,8 @@ PORT=4000
 GEMINI_API_KEY=your_gemini_api_key_here
 
 # Optional: Gemini model selection
-# GEMINI_MODEL=gemini-pro
+# Available models: gemini-1.5-flash (default, faster), gemini-1.5-pro (higher quality)
+# GEMINI_MODEL=gemini-1.5-flash
 ```
 
 ### MongoDB Atlas Setup (Cloud)

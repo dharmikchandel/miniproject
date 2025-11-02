@@ -12,8 +12,9 @@ async function callGemini(prompt, opts = {}) {
     throw new Error('GEMINI_API_KEY environment variable is required');
   }
 
-  // Use Gemini API endpoint
-  const model = opts.model || process.env.GEMINI_MODEL || 'gemini-pro';
+  // Use Gemini API endpoint with current model names
+  // Available models: gemini-1.5-flash, gemini-1.5-pro, gemini-1.5-pro-latest
+  const model = opts.model || process.env.GEMINI_MODEL || 'gemini-1.5-flash';
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   
   // Combine system prompt and user prompt for Gemini
@@ -46,9 +47,23 @@ async function callGemini(prompt, opts = {}) {
       }
     );
 
-    const content = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+    // Handle different response structures
+    let content = null;
+    if (response.data.candidates && response.data.candidates[0]) {
+      content = response.data.candidates[0]?.content?.parts?.[0]?.text;
+    }
+    
+    // Check if response was blocked or filtered
+    if (response.data.candidates?.[0]?.finishReason) {
+      const finishReason = response.data.candidates[0].finishReason;
+      if (finishReason !== 'STOP' && finishReason !== 'MAX_TOKENS') {
+        throw new Error(`Gemini API response blocked: ${finishReason}`);
+      }
+    }
+    
     if (!content) {
-      throw new Error('No content in Gemini API response');
+      console.error('Full Gemini API response:', JSON.stringify(response.data, null, 2));
+      throw new Error('No content in Gemini API response. Check the API response structure.');
     }
 
     // Clean up response - remove markdown code fences if present
@@ -63,7 +78,19 @@ async function callGemini(prompt, opts = {}) {
   } catch (error) {
     if (error.response) {
       const errorMsg = error.response.data?.error?.message || error.message;
-      throw new Error(`Gemini API error: ${error.response.status} - ${errorMsg}`);
+      const status = error.response.status;
+      
+      // Provide helpful suggestions for common errors
+      if (status === 404) {
+        const currentModel = opts.model || process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+        throw new Error(`Gemini API error 404: Model "${currentModel}" not found. Try: gemini-1.5-flash, gemini-1.5-pro, or gemini-1.5-pro-latest`);
+      } else if (status === 400) {
+        throw new Error(`Gemini API error 400: Bad request - ${errorMsg}. Check your prompt and API key.`);
+      } else if (status === 401 || status === 403) {
+        throw new Error(`Gemini API error ${status}: Authentication failed. Check your GEMINI_API_KEY.`);
+      }
+      
+      throw new Error(`Gemini API error: ${status} - ${errorMsg}`);
     }
     throw new Error(`Gemini API request failed: ${error.message}`);
   }
