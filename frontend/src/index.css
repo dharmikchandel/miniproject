@@ -230,6 +230,31 @@ h3 {
   background: #6BCB77;
 }
 
+/* Dark scrollbar for code blocks */
+.brutal-box div[style*="background: #1E1E1E"] ::-webkit-scrollbar-track {
+  background: #2D2D2D;
+  border: 2px solid #000000;
+}
+
+.brutal-box div[style*="background: #1E1E1E"] ::-webkit-scrollbar-thumb {
+  background: #4ECDC4;
+  border: 2px solid #000000;
+}
+
+.brutal-box div[style*="background: #1E1E1E"] ::-webkit-scrollbar-thumb:hover {
+  background: #6BCB77;
+}
+
+/* Syntax Highlighter Customization */
+.brutal-box pre[class*="language-"] {
+  margin: 0 !important;
+  background: #1E1E1E !important;
+}
+
+.brutal-box code[class*="language-"] {
+  font-family: 'Fira Code', 'Consolas', 'Courier New', monospace !important;
+}
+
 /* Notification Animation */
 @keyframes slideIn {
   from {
